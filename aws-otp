@@ -1,0 +1,40 @@
+#!/bin/bash
+
+set -eiuo pipefail
+
+if [[ $# -lt 1 ]]; then
+  echo "Usage $0 profile_name [ssh_host]"
+  exit 1;
+fi
+
+LONG_TERM_PROFILE=$1-long-term
+
+MFA_SERIAL=$(aws configure get aws_mfa_device --profile "$LONG_TERM_PROFILE")
+OTP_COMMAND=$(aws configure get otp_command --profile "$LONG_TERM_PROFILE")
+
+PROFILE=${LONG_TERM_PROFILE/-long-term//}
+
+echo "Reading OATH code" >&2
+OATH_CODE=$(eval "$OTP_COMMAND")
+
+echo "Calling AWS" >&2
+CREDJSON=$(aws --profile "$LONG_TERM_PROFILE" sts get-session-token --serial-number "$MFA_SERIAL" --token-code "$OATH_CODE")
+
+ACCESSKEY="$(echo "$CREDJSON" | jq -r '.Credentials.AccessKeyId')"
+SECRETKEY="$(echo "$CREDJSON" | jq -r '.Credentials.SecretAccessKey')"
+SESSIONTOKEN="$(echo "$CREDJSON" | jq -r '.Credentials.SessionToken')"
+
+COMMANDS="
+  aws configure set aws_access_key_id \"$ACCESSKEY\" --profile $PROFILE;
+  aws configure set aws_secret_access_key \"$SECRETKEY\" --profile $PROFILE;
+  aws configure set aws_session_token \"$SESSIONTOKEN\" --profile $PROFILE;
+"
+
+if [[ $# -eq 1 ]]; then
+  echo "Setting up locally" >&2
+  eval "$COMMANDS"
+else
+  echo "Setting up on the remote host" >&2
+  ssh "$2" "$COMMANDS"
+fi
+echo "Done"
