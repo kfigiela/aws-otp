@@ -38,7 +38,7 @@ ykman oath accounts code --single AWS:me@acme
 Use 1Password CLI to get OTP, e.g.:
 
 ```shell
-op item get "AWS acme" --otp
+op item get "AWS (ACME)" --otp
 ```
 
 ## Storing long-term credentials securely
@@ -47,7 +47,7 @@ AWS CLI allows providing long-term credentials with an external command. For ins
 
 ```
 [acme-long-term]
-credential_process = sh -c "op item get --cache \"Amazon (ACME)\" --fields label=\"AWS_ACCESS_KEY_ID\",\"AWS_SECRET_ACCESS_KEY\" --format json | jq '. | map({(.label):.}) | add | {Version:1, AccessKeyId: .\"AWS_ACCESS_KEY_ID\".value, SecretAccessKey:.\"AWS_SECRET_ACCESS_KEY\".value}'"
+credential_process = sh -c "op item get --cache \"AWS (ACME)\" --fields label=\"AWS_ACCESS_KEY_ID\",\"AWS_SECRET_ACCESS_KEY\" --format json | jq '. | map({(.label):.}) | add | {Version:1, AccessKeyId: .\"AWS_ACCESS_KEY_ID\".value, SecretAccessKey:.\"AWS_SECRET_ACCESS_KEY\".value}'"
 ```
 
 ## Related projects
