@@ -12,7 +12,7 @@ LONG_TERM_PROFILE=$1-long-term
 MFA_SERIAL=$(aws configure get aws_mfa_device --profile "$LONG_TERM_PROFILE")
 OTP_COMMAND=$(aws configure get otp_command --profile "$LONG_TERM_PROFILE")
 
-PROFILE=${LONG_TERM_PROFILE/-long-term//}
+PROFILE=${LONG_TERM_PROFILE/-long-term/}
 
 echo "Reading OATH code" >&2
 OATH_CODE=$(eval "$OTP_COMMAND")
